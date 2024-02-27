@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Template Update</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <style>
+        .hover-row:hover {
+            background-color: #e7f4ff !important;
+        }
+    </style>
+</head>
+<body style="font-family: Roboto, monospace, 'Courier New', Arial; line-height: 1.5; background-color: #f6f6f6; margin: 0; padding: 0; color: #333;">
+    <div style="max-width: 600px; margin: 40px auto; background: #ffffff; padding: 25px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <img src="http://cdn.mcauto-images-production.sendgrid.net/cc7e8de96ecd4053/4a84ee60-425a-43fb-8c15-76117d25ba60/2000x2000.png" alt="Empório Zingaro Logo" style="display: block; margin: 0 auto 30px; width: 160px; height: auto;">
+
+        <p style="margin: 0 0 20px; line-height: 1.5;">Prezado(a) {{client_name}},</p>
+        <p style="margin: 0 0 20px; line-height: 1.5;">Agradecemos por escolher o Empório Zingaro novamente! Aqui estão os detalhes da sua última compra:</p>
+
+        <div style="overflow-x: auto;">
+            <table style="border-collapse: separate; border-spacing: 0; width: 100%; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <tr>
+                    <th style="background: linear-gradient(145deg, #f0f0f0, #e6e6e6); padding: 15px; text-align: left; border-bottom: 2px solid #dddddd;">Item</th>
+                    <th style="background: linear-gradient(145deg, #f0f0f0, #e6e6e6); padding: 15px; text-align: left; border-bottom: 2px solid #dddddd;">Quantidade</th>
+                    <th style="background: linear-gradient(145deg, #f0f0f0, #e6e6e6); padding: 15px; text-align: left; border-bottom: 2px solid #dddddd;">Preço Unitário</th>
+                    <th style="background: linear-gradient(145deg, #f0f0f0, #e6e6e6); padding: 15px; text-align: left; border-bottom: 2px solid #dddddd;">Total</th>
+                </tr>
+                {{#each items}}
+                <tr class="hover-row" style="background-color: {{#if @even}}#f9f9f9{{else}}#ffffff{{/if}}; transition: background-color 0.3s ease;">
+                    <td style="border: 1px solid #eeeeee; padding: 15px; text-align: left;">{{item_name}}</td>
+                    <td style="border: 1px solid #eeeeee; padding: 15px; text-align: left;">{{item_quantity}}</td>
+                    <td style="border: 1px solid #eeeeee; padding: 15px; text-align: left;">R${{item_price}}</td>
+                    <td style="border: 1px solid #eeeeee; padding: 15px; text-align: left;">R${{total_item_price}}</td>
+                </tr>
+                {{/each}}
+            </table>
+        </div>
+
+        <div style="margin: 10px 0;">
+            <p style="margin: 10px 0; line-height: 1.2;"><strong>Sub Total:</strong> R${{sub_total}}</p>
+            <p style="margin: 10px 0; line-height: 1.2;"><strong>Desconto Aplicado:</strong> R${{total_discount}}</p>
+            <p style="margin: 10px 0; line-height: 1.2;"><strong>Total Pago:</strong> R${{total_paid}}</p>
+            <p style="margin: 10px 0; line-height: 1.2;"><strong>Método de Pagamento:</strong> {{payment_method}}</p>
+            {{#if nota_fiscal_url}}
+            <p style="margin: 10px 0; line-height: 1.5;">Para acessar a nota fiscal da sua compra, <a href="{{nota_fiscal_url}}" style="color: #1155cc; text-decoration: none;">clique aqui</a>.</p>
+            {{/if}}
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+            <p style="margin: 30px 0 5px; line-height: 1.5;"><strong>Atualização do seu Programa de Fidelidade:</strong></p>
+            <ul style="margin: 0; padding-left: 15px;">
+                <li style="margin-bottom: 5px; line-height: 1.5;">Check-ins Diários: {{daily_checkins}}</li>
+                <li style="margin-bottom: 5px; line-height: 1.5;">Gasto Trimestral: R${{quarter_spend}}</li>
+                <li style="margin-bottom: 5px; line-height: 1.5;">Gasto Vitalício: R${{lifetime_spend}}</li>
+            </ul>
+        </div>
+
+        <p style="margin: 30px 0; line-height: 1.5;">Para qualquer dúvida ou suporte, estamos à disposição por e-mail ou WhatsApp.</p>
+        <p style="margin: 0; line-height: 1.5;">Atenciosamente,</p>
+        <p style="margin: 0; line-height: 1.5;">Equipe Empório Zingaro</p>
+    </div>
+    <div style="background-color: #4a4a4a; color: #e0e0e0; text-align: center; padding: 20px; font-size: 0.9em;">
+        <!-- Instagram Icon -->
+        <p style="margin: 10px 0; line-height: 1.4;">
+            <a href="https://www.instagram.com/emporiozingaro/" target="_blank" style="color: #e0e0e0; text-decoration: none;">
+                <img src="http://cdn.mcauto-images-production.sendgrid.net/cc7e8de96ecd4053/b333ab14-cd86-4358-9593-d0d4b017c3f9/24x24.png" alt="Instagram" style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle;">
+                emporiozingaro
+            </a>
+        </p>
+        <!-- GitHub Icon -->
+        <p style="margin: 20px 0; line-height: 1.4;">
+            <a href="https://github.com/EmporioZingaro" target="_blank" style="color: #e0e0e0; text-decoration: none;">
+                <img src="http://cdn.mcauto-images-production.sendgrid.net/cc7e8de96ecd4053/b2579d97-5715-4000-9e75-d9947dff28f3/24x24.png" alt="GitHub" style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle;">
+                Follow us on GitHub
+            </a>
+        </p>
+        <!-- Phone Icon -->
+        <p style="margin: 20px 0; line-height: 1.4;">
+            <a href="tel:+5561996410175" style="color: #e0e0e0; text-decoration: none;">
+                <img src="http://cdn.mcauto-images-production.sendgrid.net/cc7e8de96ecd4053/ef1cd013-dcae-4a40-8382-f3b29fd5c76e/24x24.png" alt="Phone" style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle;">
+                +55 (61) 99641-0175
+            </a>
+        </p>
+        <!-- Email Icon -->
+        <p style="margin: 20px 0; line-height: 1.4;">
+            <a href="mailto:sac@emporiozingaro.com" style="color: #e0e0e0; text-decoration: none;">
+                <img src="http://cdn.mcauto-images-production.sendgrid.net/cc7e8de96ecd4053/dd18d105-f777-417a-9d34-f87428fb4035/24x24.png" alt="Email" style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle;">
+                sac@emporiozingaro.com
+            </a>
+        </p>
+        <!-- Map Marker Icon -->
+        <p style="margin: 20px 0; line-height: 1.4;">
+            <a href="https://maps.app.goo.gl/irqng1cV7ZcCBmcRA" target="_blank" style="color: #e0e0e0; text-decoration: none;">
+                <img src="http://cdn.mcauto-images-production.sendgrid.net/cc7e8de96ecd4053/860ea893-e456-4a99-9914-3ad1e914885a/24x24.png" alt="Location" style="width: 24px; height: 24px; margin-right: 8px; vertical-align: middle;">
+                CLN 316, Bloco E, Loja 2 - Asa Norte - Brasília
+            </a>
+        </p>
+        <!-- Unsubscribe Link -->
+        <p class="unsubscribe" style="font-size: 0.8em; text-align: center; margin-top: 30px; color: #cccccc; line-height: 1.4;">
+            Se você não deseja mais receber esses e-mails, 
+            <a href="<%asm_group_unsubscribe_raw_url%>" target="_blank" style="color: #cccccc; text-decoration: underline;">clique aqui para cancelar a inscrição</a>.
+        </p>
+    </div>
+</body>
+</html>
