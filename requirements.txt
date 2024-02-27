@@ -1,0 +1,6 @@
+google-cloud-bigquery
+google-cloud-secret-manager
+google-cloud-storage
+sendgrid
+tenacity
+requests
