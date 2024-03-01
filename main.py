@@ -9,7 +9,7 @@ from google.cloud import secretmanager
 from google.cloud import storage
 from google.cloud.exceptions import BadRequest
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Asm, Mail
+from sendgrid.helpers.mail import Mail, Email, Asm
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential, before_sleep_log
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(levelname)s: %(message)s')
@@ -19,6 +19,7 @@ SECRET_MANAGER_API_TOKEN_NAME = "projects/559935551835/secrets/z316-tiny-token-a
 SECRET_MANAGER_SENDGRID_API_KEY_NAME = "projects/559935551835/secrets/SendGrid/versions/latest"
 TEMPLATE_ID = 'd-f5543523eceb42bc9eec353aebc19aef'
 FROM_EMAIL = 'sac@emporiozingaro.com'
+FROM_NAME = 'Empório Zingaro'
 TEST_MODE = True
 TEST_EMAIL = 'rodrigo@brunale.com'
 
@@ -125,7 +126,7 @@ def process_webhook_payload(payload: Dict, sg_client):
                 logging.error(f"Error fetching NFCe link: {e}")
 
         email_data = aggregate_email_data(cliente_cpfCnpj, dados_id, client_email, nota_fiscal_url, cliente_nome)
-        
+
         send_email(email_data, sg_client)
 
     except KeyError as e:
@@ -181,9 +182,9 @@ def generate_nfce(dados_id: str) -> str:
     logging.info(f"Starting NFC-e generation for dados_id: {dados_id}")
     token = TINY_ERP_API_TOKEN
     url = f"https://api.tiny.com.br/api2/gerar.nota.fiscal.pedido.php?token={token}&formato=JSON&id={dados_id}&modelo=NFCe"
-    
+
     response = make_api_call(url)
-    
+
     if 'retorno' in response and 'registros' in response['retorno'] and 'registro' in response['retorno']['registros']:
         nfce_id = response['retorno']['registros']['registro']['idNotaFiscal']
         logging.info(f"NFC-e generated successfully with idNotaFiscal: {nfce_id}")
@@ -236,8 +237,8 @@ def get_client_email(cliente_cpfCnpj: str) -> str:
     logging.info(f"Fetching email for client with CPF/CNPJ: {cliente_cpfCnpj}")
     try:
         query = f"""
-        SELECT email 
-        FROM `emporio-zingaro.z316_tiny.z316-tiny-contatos` 
+        SELECT email
+        FROM `emporio-zingaro.z316_tiny.z316-tiny-contatos`
         WHERE cpf_cnpj = '{cliente_cpfCnpj}'
         """
         logging.debug("Constructed SQL query for client email.")
@@ -255,7 +256,7 @@ def get_client_email(cliente_cpfCnpj: str) -> str:
                 email_found = True
                 logging.info(f"Email found: {row.email}")
                 return row.email
-        
+
         if not email_found:
             logging.warning(f"No email found in BigQuery for client with CPF/CNPJ: {cliente_cpfCnpj}. Falling back to TinyERP.")
             return get_client_email_from_tinyerp(cliente_cpfCnpj)
@@ -466,7 +467,6 @@ def get_lifetime_spend(cliente_cpfCnpj: str) -> dict:
         logging.debug("Executing BigQuery query for lifetime spend.")
         query_job = bq_client.query(query)
 
-        # Wait for the query to finish
         logging.debug("Waiting for query job to complete...")
         query_job.result()
         logging.debug("Query job completed.")
@@ -505,7 +505,7 @@ def aggregate_email_data(cliente_cpfCnpj: str, dados_id: str, client_email: str,
         daily_checkins = get_daily_checkins(cliente_cpfCnpj)
         quarter_spend = get_quarter_spend(cliente_cpfCnpj)
         lifetime_spend = get_lifetime_spend(cliente_cpfCnpj)
-                
+
         email_data = {
 	        'client_email': client_email,
 	        'client_name': client_name,
@@ -537,7 +537,8 @@ def send_email(email_data, sg_client, retry_count=0):
             logging.warning(f"Email not sent. No email address for client {email_data.get('client_name')}.")
             return
 
-        message = Mail(from_email=FROM_EMAIL, to_emails=recipient_email)
+        sender_email = Email(FROM_EMAIL, FROM_NAME)
+        message = Mail(from_email=sender_email, to_emails=recipient_email)
         message.template_id = TEMPLATE_ID
         message.dynamic_template_data = email_data
 
