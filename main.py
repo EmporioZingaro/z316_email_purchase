@@ -1,6 +1,7 @@
 import json
 import logging
 import time
+import os
 from typing import Dict
 
 import requests
@@ -14,15 +15,15 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(levelname)s: %(message)s')
 
-PROJECT_ID = "emporio-zingaro"
-SECRET_MANAGER_API_TOKEN_NAME = "projects/559935551835/secrets/z316-tiny-token-api/versions/latest"
-SECRET_MANAGER_SENDGRID_API_KEY_NAME = "projects/559935551835/secrets/SendGrid/versions/latest"
-TEMPLATE_ID = 'd-f5543523eceb42bc9eec353aebc19aef'
-FROM_EMAIL = 'sac@emporiozingaro.com'
-FROM_NAME = 'Empório Zingaro'
-TEST_MODE = True
-TEST_EMAIL = 'rodrigo@brunale.com'
-FIDELITY = True
+PROJECT_ID = os.getenv("PROJECT_ID")
+SECRET_MANAGER_API_TOKEN_NAME = os.getenv("SECRET_MANAGER_API_TOKEN_NAME")
+SECRET_MANAGER_SENDGRID_API_KEY_NAME = os.getenv("SECRET_MANAGER_SENDGRID_API_KEY_NAME")
+TEMPLATE_ID = os.getenv("TEMPLATE_ID")
+FROM_EMAIL = os.getenv("FROM_EMAIL")
+FROM_NAME = os.getenv("FROM_NAME")
+TEST_MODE = os.getenv("TEST_MODE").lower() in ['true', '1', 't', 'y', 'yes']
+TEST_EMAIL = os.getenv("TEST_EMAIL")
+FIDELITY = os.getenv("FIDELITY").lower() in ['true', '1', 't', 'y', 'yes']
 
 
 storage_client = storage.Client()
