@@ -22,6 +22,8 @@ FROM_EMAIL = 'sac@emporiozingaro.com'
 FROM_NAME = 'Empório Zingaro'
 TEST_MODE = True
 TEST_EMAIL = 'rodrigo@brunale.com'
+FIDELITY = True
+
 
 storage_client = storage.Client()
 secret_manager_client = secretmanager.SecretManagerServiceClient()
@@ -66,7 +68,7 @@ def trigger_function(event, context):
     file_name = event['name']
     bucket_name = event['bucket']
     logging.info(f"Processing file: {file_name} from bucket: {bucket_name}")
-    
+
     sg_client = SendGridAPIClient(SENDGRID_API_TOKEN)
 
     file_data = download_blob(bucket_name, file_name)
@@ -349,6 +351,9 @@ def get_purchase_details(dados_id: str) -> dict:
 
 
 def get_daily_checkins(cliente_cpfCnpj: str) -> dict:
+    if not FIDELITY:
+        return {'daily_checkins': 0}
+
     logging.info(f"Fetching daily check-ins for client with CPF/CNPJ: {cliente_cpfCnpj}")
     try:
         query = f"""
@@ -385,6 +390,9 @@ def get_daily_checkins(cliente_cpfCnpj: str) -> dict:
 
 
 def get_quarter_spend(cliente_cpfCnpj: str) -> dict:
+    if not FIDELITY:
+        return {'quarter_spend': 0}
+
     logging.info(f"Fetching quarter spend for client with CPF/CNPJ: {cliente_cpfCnpj}")
     try:
         query = f"""
@@ -434,30 +442,33 @@ def get_quarter_spend(cliente_cpfCnpj: str) -> dict:
 
 
 def get_lifetime_spend(cliente_cpfCnpj: str) -> dict:
+    if not FIDELITY:
+        return {'total_spend': 0}
+
     logging.info(f"Fetching lifetime spend for client with CPF/CNPJ: {cliente_cpfCnpj}")
 
     query = f"""
-	SELECT
-	  SUM(sub.totalVenda) AS total_spend
-	FROM (
-	  SELECT
-	    pdv.totalVenda,
-	    ARRAY_LENGTH(ARRAY(
-	      SELECT AS STRUCT item
-	      FROM UNNEST(pdv.itens) item
-	      WHERE item.desconto = '0.00'
-	    )) AS no_discount_items_count,
-	    ARRAY_LENGTH(pdv.itens) AS total_items_count
-	  FROM
-	    `emporio-zingaro.z316_tiny_raw_json.pdv` AS pdv
-	  WHERE
-	    pdv.contato.cpfCnpj = '{cliente_cpfCnpj}'
-	    AND pdv.data >= '2023-10-01'
-	    AND pdv.formaPagamento IN ('credito', 'debito', 'pix', 'multiplas', 'dinheiro')
-	    AND pdv.desconto IN ('0', '0,00')
-	) AS sub
-	WHERE
-	  sub.no_discount_items_count = sub.total_items_count;
+    SELECT
+      SUM(sub.totalVenda) AS total_spend
+    FROM (
+      SELECT
+        pdv.totalVenda,
+        ARRAY_LENGTH(ARRAY(
+          SELECT AS STRUCT item
+          FROM UNNEST(pdv.itens) item
+          WHERE item.desconto = '0.00'
+        )) AS no_discount_items_count,
+        ARRAY_LENGTH(pdv.itens) AS total_items_count
+      FROM
+        `emporio-zingaro.z316_tiny_raw_json.pdv` AS pdv
+      WHERE
+        pdv.contato.cpfCnpj = '{cliente_cpfCnpj}'
+        AND pdv.data >= '2023-10-01'
+        AND pdv.formaPagamento IN ('credito', 'debito', 'pix', 'multiplas', 'dinheiro')
+        AND pdv.desconto IN ('0', '0,00')
+    ) AS sub
+    WHERE
+      sub.no_discount_items_count = sub.total_items_count;
     """
 
     logging.debug("Constructed SQL query for lifetime spend.")
@@ -502,23 +513,27 @@ def get_lifetime_spend(cliente_cpfCnpj: str) -> dict:
 def aggregate_email_data(cliente_cpfCnpj: str, dados_id: str, client_email: str, nota_fiscal_url: str, client_name: str) -> dict:
     try:
         items = get_purchase_details(dados_id)
-        daily_checkins = get_daily_checkins(cliente_cpfCnpj)
-        quarter_spend = get_quarter_spend(cliente_cpfCnpj)
-        lifetime_spend = get_lifetime_spend(cliente_cpfCnpj)
+        daily_checkins = get_daily_checkins(cliente_cpfCnpj) if FIDELITY else {'daily_checkins': 0}
+        quarter_spend = get_quarter_spend(cliente_cpfCnpj) if FIDELITY else {'quarter_spend': 0}
+        lifetime_spend = get_lifetime_spend(cliente_cpfCnpj) if FIDELITY else {'total_spend': 0}
 
         email_data = {
-	        'client_email': client_email,
-	        'client_name': client_name,
-	        'dados_id': dados_id,
-	        'items': items.get('items', []),
-	        'sub_total': items.get('sub_total', '0.00'),
-	        'total_discount': items.get('total_discount', '0.00'),
-	        'total_paid': items.get('total_paid', '0.00'),
-	        'payment_method': items.get('payment_method', 'N/A'),
-	        'daily_checkins': daily_checkins.get('daily_checkins', 0),
-	        'quarter_spend': quarter_spend.get('quarter_spend', '0.00'),
-	        'lifetime_spend': lifetime_spend.get('total_spend', '0.00'),
+            'client_email': client_email,
+            'client_name': client_name,
+            'dados_id': dados_id,
+            'items': items.get('items', []),
+            'sub_total': items.get('sub_total', '0.00'),
+            'total_discount': items.get('total_discount', '0.00'),
+            'total_paid': items.get('total_paid', '0.00'),
+            'payment_method': items.get('payment_method', 'N/A'),
         }
+
+        if FIDELITY:
+            email_data.update({
+                'daily_checkins': daily_checkins.get('daily_checkins', 0),
+                'quarter_spend': quarter_spend.get('quarter_spend', '0.00'),
+                'lifetime_spend': lifetime_spend.get('total_spend', '0.00'),
+            })
 
         if nota_fiscal_url is not None:
             email_data['nota_fiscal_url'] = nota_fiscal_url
