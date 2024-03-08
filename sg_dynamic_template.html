@@ -48,12 +48,14 @@
         </div>
         
         <div style="margin-bottom: 20px;">
+            {{#if daily_checkins}}
             <p style="margin: 30px 0 5px; line-height: 1.5;"><strong>Atualização do seu Programa de Fidelidade:</strong></p>
             <ul style="margin: 0; padding-left: 15px;">
                 <li style="margin-bottom: 5px; line-height: 1.5;">Check-ins Diários: {{daily_checkins}}</li>
                 <li style="margin-bottom: 5px; line-height: 1.5;">Gasto Trimestral: R${{quarter_spend}}</li>
                 <li style="margin-bottom: 5px; line-height: 1.5;">Gasto Vitalício: R${{lifetime_spend}}</li>
             </ul>
+            {{/if}}
         </div>
 
         <p style="margin: 30px 0; line-height: 1.5;">Para qualquer dúvida ou suporte, estamos à disposição por e-mail ou WhatsApp.</p>
